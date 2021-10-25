@@ -9,11 +9,10 @@ library(randomForest)
 
 ## Executive Summary
 
-Based on a dataset provide by HAR [http://groupware.les.inf.puc-rio.br/har](http://groupware.les.inf.puc-rio.br/har) we will try to train a predictive model to predict what exercise was performed using a dataset with 159 features
+Dataset: HAR [http://groupware.les.inf.puc-rio.br/har](http://groupware.les.inf.puc-rio.br/har) train a predictive model to predict what exercise was performed using a dataset.
 
 
-
-We'll take the following steps:
+ the following steps:
 
 - Process the data, for use of this project
 - Explore the data, especially focussing on the two paramaters we are interested in 
@@ -24,8 +23,8 @@ We'll take the following steps:
 
 ## Processing
 
-First change 'am' to  factor (0 = automatic, 1 = manual)
-And make cylinders a factor as well (since it is not continious)
+change 'am' to  factor (0 = automatic, 1 = manual)
+make cylinders a factor as well (since it is not continious)
 
 ```{r}
 training.raw <- read.csv("pml-training.csv")
@@ -47,7 +46,7 @@ dim(training.raw)
 ```
 
 
-What we see is a lot of data with NA / empty values. Let's remove those
+There is a lot of data with NA / empty values. Let's remove those
 
 ```{r}
 maxNAPerc = 20
@@ -65,7 +64,7 @@ training.cleaned02 <- training.cleaned01[,-c(1, removeColumns )]
 testing.cleaned02 <- testing.cleaned01[,-c(1, removeColumns )]
 ```
 
-Then convert all factors to integers
+let's convert all factors to integers
 ```{r}
 classeLevels <- levels(training.cleaned02$classe)
 training.cleaned03 <- data.frame(data.matrix(training.cleaned02))
@@ -116,13 +115,10 @@ multiplot(p1,p2,cols=2)
 ```
 
 Clearly there is no hard seperation of classes possible using only these 'highly' correlated features.
-Let's train some models to get closer to a way of predicting these classe's
+Let's train some models to get closer to a way of predicting these classes.
 
 ## Model selection 
-
-Let's identify variables with high correlations amongst each other in our set, so we can possibly exclude them from the pca or training. 
-
-We will check afterwards if these modifications to the dataset make the model more accurate (and perhaps even faster)
+identify variables with high correlations amongst each other in the set, to possibly exclude them from the pca or training. 
 
 ```{r}
 library(corrplot)
@@ -146,9 +142,9 @@ training.subSetTest.pca.subset <- predict(pcaPreProcess.subset, training.subSetT
 testing.pca.subset <- predict(pcaPreProcess.subset, testing.cleaned[, -classeIndex])
 ```
 
-Now we'll do some actual Random Forest training.
-We'll use 200 trees, because I've already seen that the error rate doesn't decline a lot after say 50 trees, but we still want to be thorough.
-Also we will time each of the 4 random forest models to see if when all else is equal one pops out as the faster one.
+Random Forest Training
+Let's use 200 trees, as the error rate doesn't decline a lot after say 50 trees, but we still want to be thorough.
+let's time each of the 4 random forest models to see if when all else is equal one pops out as the faster one.
 
 ```{r}
 library(randomForest)
@@ -197,7 +193,7 @@ proc.time() - start
 
 ## Model examination
 
-Now that we have 4 trained models, we will check the accuracies of each.
+Checking the accuracies.
 (There probably is a better way, but this still works good)
 
 ```{r}
@@ -232,8 +228,6 @@ We'll stick with the `rfMod.exclude` model as the best model to use for predicti
 Because with an accuracy of 98.7% and an estimated OOB error rate of 0.23% this is the best model.
 
 
-Before doing the final prediction we will examine the chosen model more in depth using some plots
-
 ```{r}
 par(mfrow=c(1,2)) 
 varImpPlot(rfMod.exclude, cex=0.7, pch=16, main='Variable Importance Plot: rfMod.exclude')
@@ -266,7 +260,6 @@ proc.time() - start
 
 # Test results
 
-Although we've chosen the `rfMod.exclude` it's still nice to see what the other 3 models would predict on the final test set.
 Let's look at predictions for all models on the final test set. 
 
 ```{r}
@@ -278,5 +271,4 @@ predictions <- t(cbind(
 ))
 predictions
 ```
-
-The predictions don't really change a lot with each model, but since we have most faith in the `rfMod.exclude`, we'll keep that as final answer. 
+ 
